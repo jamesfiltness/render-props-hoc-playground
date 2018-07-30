@@ -1,48 +1,50 @@
 import React from 'react';
 
-export default class LoadData extends React.Component {
-  constructor(props){
-    super(props);
+export default function WithLoadData(WrappedComponent) {
+  return class extends React.Component {
+    constructor(props){
+      super(props);
+      
+      this.state = {
+        data: [],
+        loading: false,
+        error: null,
+      };
+    }
     
-    this.state = {
-      data: [],
-      loading: false,
-      error: null,
-    };
-  }
-  
-  fetchData = (uri) => {
-    fetch(uri)
-      .then((data) => data.json())
-      .then((data) => {
-        this.setState({
-          data: data,
-          loading: false,
-        });
-    })
-    .catch((error) => {
-      setTimeout(() => {
-        this.setState({
-          error: error,
-          loading: false,
-        });
-      }, 500);
-    })
-  }
-  
-  componentDidMount() {
-    this.setState({
-      loading: true,
-    });
+    fetchData = (uri) => {
+      fetch(uri)
+        .then((data) => data.json())
+        .then((data) => {
+        setTimeout(() => {         
+          this.setState({
+            data: data,
+            loading: false,
+          });
+        }, 500);  
+      })
+      .catch((error) => {
+        setTimeout(() => {
+          this.setState({
+            error: error,
+            loading: false,
+          });
+        }, 500);
+      })
+    }
     
-    this.fetchData(this.props.uri);
-  }
+    componentDidMount() {
+      this.setState({
+        loading: true,
+      });
+  
+      this.fetchData(this.props.endpoint);
+    }
 
-  render(){
-    return (
-      <React.Fragment>
-        {this.props.children({...this.state})}
-      </React.Fragment>
-    )
+    render(){
+      return (
+        <WrappedComponent {...this.state} {...this.props} />
+      )
+    }
   }
 }
